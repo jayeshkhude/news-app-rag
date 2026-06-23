@@ -1,0 +1,21 @@
+# Environment secrets
+.env
+
+# Generated data (rebuilt from Neon on first run)
+data/faiss_index.bin
+data/documents.pkl
+data/*.csv
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
