@@ -175,6 +175,8 @@ class VectorStore:
     def save(self, index_path: str = None, docs_path: str = None) -> None:
         ip = Path(index_path) if index_path else INDEX_FILE
         dp = Path(docs_path) if docs_path else DOCS_FILE
+        ip.parent.mkdir(parents=True, exist_ok=True)
+        dp.parent.mkdir(parents=True, exist_ok=True)
         faiss.write_index(self.index, str(ip))
         with open(dp, "wb") as f:
             pickle.dump(self.documents, f)
