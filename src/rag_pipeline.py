@@ -6,16 +6,15 @@ Model: llama-3.1-8b-instant — fast and free on Groq.
 
 import os
 from typing import List, Dict, Tuple, Optional
-from dotenv import load_dotenv
+
 from groq import Groq
 
+from config import get_config
 from vectorstore import VectorStore, is_recency_query
 
-load_dotenv()
-
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GROQ_API_KEY = get_config("GROQ_API_KEY")
 DEFAULT_MODEL = "llama-3.1-8b-instant"
-DEFAULT_TOP_K = int(os.getenv("TOP_K", "5"))
+DEFAULT_TOP_K = int(get_config("TOP_K", "5") or "5")
 
 SYSTEM_PROMPT = """You are an expert Indian news analyst assistant.
 You answer questions strictly based on the provided news summaries.

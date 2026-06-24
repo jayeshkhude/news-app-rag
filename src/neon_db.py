@@ -3,45 +3,43 @@ neon_db.py
 Connect to Neon PostgreSQL for the summaries table.
 """
 
-import os
 from functools import lru_cache
-from typing import Optional
 
 import psycopg2
 import requests
-from dotenv import load_dotenv
 
-load_dotenv()
-
-NEON_API_KEY = os.getenv("NEON_API_KEY", "")
-NEON_PROJECT_ID = os.getenv("NEON_PROJECT_ID", "royal-shadow-76392601")
-NEON_DATABASE = os.getenv("NEON_DATABASE", "neondb")
-NEON_ROLE = os.getenv("NEON_ROLE", "neondb_owner")
-DATABASE_URL = os.getenv("DATABASE_URL", "")
+from config import get_config
 
 
 def neon_configured() -> bool:
-    return bool(DATABASE_URL or NEON_API_KEY)
+    return bool(get_config("DATABASE_URL") or get_config("NEON_API_KEY"))
 
 
 @lru_cache(maxsize=1)
 def _resolve_database_url() -> str:
-    if DATABASE_URL:
-        return DATABASE_URL
+    database_url = get_config("DATABASE_URL")
+    if database_url:
+        return database_url
 
-    if not NEON_API_KEY:
+    neon_api_key = get_config("NEON_API_KEY")
+    if not neon_api_key:
         raise ValueError(
-            "Set DATABASE_URL or NEON_API_KEY in .env to load data from Neon."
+            "Set DATABASE_URL or NEON_API_KEY in Streamlit secrets or .env."
         )
 
-    project_id = NEON_PROJECT_ID or _discover_project_id()
+    project_id = get_config("NEON_PROJECT_ID", "royal-shadow-76392601") or _discover_project_id()
     branch_id = _get_primary_branch_id(project_id)
-    return _fetch_connection_uri(project_id, branch_id)
+    return _fetch_connection_uri(
+        project_id,
+        branch_id,
+        get_config("NEON_DATABASE", "neondb"),
+        get_config("NEON_ROLE", "neondb_owner"),
+    )
 
 
 def _neon_headers() -> dict:
     return {
-        "Authorization": f"Bearer {NEON_API_KEY}",
+        "Authorization": f"Bearer {get_config('NEON_API_KEY')}",
         "Accept": "application/json",
     }
 
@@ -59,7 +57,7 @@ def _discover_project_id() -> str:
     if len(projects) == 1:
         return projects[0]["id"]
     raise ValueError(
-        "Multiple Neon projects found. Set NEON_PROJECT_ID in .env."
+        "Multiple Neon projects found. Set NEON_PROJECT_ID in secrets or .env."
     )
 
 
@@ -77,10 +75,15 @@ def _get_primary_branch_id(project_id: str) -> str:
     return primary["id"]
 
 
-def _fetch_connection_uri(project_id: str, branch_id: str) -> str:
+def _fetch_connection_uri(
+    project_id: str,
+    branch_id: str,
+    database_name: str,
+    role_name: str,
+) -> str:
     response = requests.get(
         f"https://console.neon.tech/api/v2/projects/{project_id}/connection_uri"
-        f"?branch_id={branch_id}&database_name={NEON_DATABASE}&role_name={NEON_ROLE}",
+        f"?branch_id={branch_id}&database_name={database_name}&role_name={role_name}",
         headers=_neon_headers(),
         timeout=30,
     )

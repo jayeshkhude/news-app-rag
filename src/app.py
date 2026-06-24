@@ -9,9 +9,7 @@ import sys
 from pathlib import Path
 
 import streamlit as st
-from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).parent.parent / ".env")
 sys.path.insert(0, str(Path(__file__).parent))
 
 from chatbot import setup
@@ -112,15 +110,11 @@ def main():
                     f"**Articles:** {stats['count']}\n\n"
                     f"**Latest news:** {stats['latest_date']}"
                 )
-                rag_pipeline = load_rag()
-                st.caption(
-                    f"Search index: {len(rag_pipeline.vs.documents)} articles "
-                    f"(auto-updates when Neon grows)"
-                )
+                st.caption("Search index builds automatically on your first question.")
             except Exception as e:
                 st.error(f"Neon connection failed: {e}")
         else:
-            st.error("Neon not configured. Add NEON_API_KEY to .env")
+            st.error("Neon not configured. Add secrets in Streamlit Cloud settings.")
 
         if st.button("Sync / Rebuild Index from Neon", use_container_width=True):
             with st.spinner("Fetching latest summaries from Neon and embedding..."):

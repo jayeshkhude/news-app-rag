@@ -3,20 +3,15 @@ data_loader.py
 Loads summaries from the Neon PostgreSQL `summaries` table.
 """
 
-import os
 import pandas as pd
 from typing import List, Dict
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
-USE_NEON = os.getenv("USE_NEON", "true").lower() in {"1", "true", "yes"}
+from config import get_config_bool
 
 
 def load_dataset() -> pd.DataFrame:
     """Load summaries exclusively from Neon."""
-    if not USE_NEON:
+    if not get_config_bool("USE_NEON", default=True):
         raise RuntimeError(
             "Local CSV is disabled. Set USE_NEON=true and configure Neon in .env."
         )
